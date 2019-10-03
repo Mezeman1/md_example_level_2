@@ -1,5 +1,7 @@
 package com.example.reminderapp
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -11,7 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_add.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.content_main.rvReminders
+
+const val ADD_REMINDER_REQUEST_CODE = 100;
 
 class MainActivity : AppCompatActivity() {
     private val reminders = arrayListOf<Reminder>()
@@ -23,8 +29,25 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         initViews()
+        fab.setOnClickListener { startAddActivity() }
     }
 
+    private fun startAddActivity() {
+        val intent = Intent(this, AddActivity::class.java)
+        startActivityForResult(intent, ADD_REMINDER_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                ADD_REMINDER_REQUEST_CODE -> {
+                    val reminder = data!!.getParcelableExtra<Reminder>(EXTRA_REMINDER)
+                    reminders.add(reminder)
+                    reminderAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+    }
 
     private fun initViews() {
 
@@ -40,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         fab.setOnClickListener {
-            val reminder = etReminder.text.toString()
+            val reminder = etAddReminder.text.toString()
             addReminder(reminder)
         }
 
@@ -51,9 +74,9 @@ class MainActivity : AppCompatActivity() {
         if (reminder.isNotBlank()) {
             reminders.add(Reminder(reminder))
             reminderAdapter.notifyDataSetChanged()
-            etReminder.text?.clear()
+            etAddReminder.text?.clear()
         } else {
-            Snackbar.make(etReminder, "You must fill in the input field!", Snackbar.LENGTH_SHORT)
+            Snackbar.make(etAddReminder, "You must fill in the input field!", Snackbar.LENGTH_SHORT)
                 .show()
         }
     }
